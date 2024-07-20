@@ -1,0 +1,10 @@
+.*
+!.git*
+
+__pycache__
+bin/
+data/
+include/
+lib/
+lib64
+pyvenv.cfg

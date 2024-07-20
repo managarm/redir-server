@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+	<div class="container py-4">
+		<div class="p-5 mb-4 bg-body-tertiary rounded-3">
+			<h1 class="display-5 fw-bold">
+				managarm USB test console
+			</h1>
+			<hr class="my-4">
+			<p class="lead">
+				{% if err %}
+					<div class="alert alert-danger">
+						{% if err == "not_whitelisted" %}
+						This service is only available for members of the <a href="https://github.com/managarm">managarm organization</a>.
+						{% else %}
+						{{ err }}
+						{% endif %}
+					</div>
+				{% endif %}
+
+				<a href="{{ url_for('login') }}" role="button" class="btn btn-dark btn-lg">
+					<i class="bi bi-github mr-2"></i>
+					<span class="mx-2">Log in with GitHub</span>
+				</a>
+				<p class="text-muted">This service is only available for members of the <a href="https://github.com/managarm">managarm GitHub organization</a>.</p>
+			</p>
+		</div>
+	</div>
+{% endblock %}

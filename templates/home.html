@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container py-4">
+	<p class="display-6">Available USB devices</p>
+	<ul class="list-group">
+		{% for d in devices %}
+		<li class="list-group-item d-flex justify-content-between align-items-center">
+			<div class="d-flex">
+			<code class="m-1 me-2">{{ '%04x' | format(d.idVendor) }}:{{ '%04x' | format(d.idProduct) }}</code>
+			<a href="{{ url_for('list_device', bus=d.bus, device=d.port_number) }}">
+				{{ d.manufacturer or "<unknown>" }} {{ d.product or "<unknown>" }}
+			</a>
+			</div>
+
+			<div class="d-flex">
+				<span id="dev{{ d.bus }}-{{ d.port_number }}-port"
+					data-toggle="tooltip" data-placement="top"
+					title="Click to copy"
+					class="badge bg-success p-2 me-3 usb-redir-addr
+						{% if not d.is_redirected %}
+						invisible
+						{% endif %}">
+				{% if d.is_redirected %}
+				{{ d.redirection_port }}
+				{% endif %}
+				</span>
+				<span class="form-check form-switch align-middle">
+					<input autocomplete="off" class="form-check-input" type="checkbox" id="dev{{ d.bus }}-{{ d.port_number }}"
+					{% if d.is_redirected %}checked{% endif %}>
+				</span>
+			</div>
+		</li>
+
+		<script>
+			$(function() {
+				$('[data-toggle="tooltip"]').tooltip();
+				$('#dev{{ d.bus }}-{{ d.port_number }}').change(function(e) {
+					if(this.checked) {
+						$.ajax({
+							url: '{{ url_for('redir_device', bus=d.bus, device=d.port_number) }}',
+							type: 'post',
+							success: function(result) {
+								this.checked = true;
+								$('#dev{{ d.bus }}-{{ d.port_number }}-port').text(result).removeClass('invisible');
+							},
+							error: function() {
+								console.log('Failed to start redirection of device {{ '%04x' | format(d.idVendor) }}:{{ '%04x' | format(d.idProduct) }}');
+							}
+						});
+					} else {
+						$.ajax({
+							url: '{{ url_for('redir_device_stop', bus=d.bus, device=d.port_number) }}',
+							type: 'post',
+							success: function(result) {
+								this.checked = false;
+								$('#dev{{ d.bus }}-{{ d.port_number }}-port').text('').addClass('invisible');
+							},
+							error: function() {
+								console.log('Failed to stop redirection of device {{ '%04x' | format(d.idVendor) }}:{{ '%04x' | format(d.idProduct) }}');
+							}
+						});
+					}
+				});
+				$('.usb-redir-addr').click(function(e) {
+					var area = $('<textarea>');
+					$('body').append(area);
+					area.val(e.target.innerHTML.trim()).select();
+					document.execCommand('copy');
+					area.remove();
+				});
+			})
+		</script>
+		{% endfor %}
+	</ul>
+</div>
+{% endblock %}
